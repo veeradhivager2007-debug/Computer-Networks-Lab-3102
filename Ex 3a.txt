@@ -1,0 +1,89 @@
+Server:
+
+import java.net.*;
+import java.io.*;
+
+public class Server {
+
+    public static final int PORT = 4000;
+
+    public static void main(String args[]) {
+
+        ServerSocket serverSocket = null;
+        Socket socket = null;
+
+        try {
+            serverSocket = new ServerSocket(PORT);
+            System.out.println("Server Started on port " + PORT);
+
+            socket = serverSocket.accept();
+            System.out.println("Client Connected: " + socket.getInetAddress());
+
+            // Input from client
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
+
+            String clientMessage = reader.readLine();
+            System.out.println("Client says: " + clientMessage);
+
+            // Send response to client
+            PrintWriter writer = new PrintWriter(
+                    socket.getOutputStream(), true);
+
+            writer.println("Hello from server");
+
+            // Close everything
+            reader.close();
+            writer.close();
+            socket.close();
+            serverSocket.close();
+
+        } catch (IOException e) {
+            System.out.println("Server Error: " + e.getMessage());
+        }
+    }
+}
+
+
+Clinet
+
+import java.net.*;
+import java.io.*;
+
+public class Client {
+
+    public static void main(String args[]) {
+
+        Socket socket = null;
+
+        System.out.println("Trying to connect...");
+
+        try {
+            socket = new Socket(InetAddress.getLocalHost(), 4000);
+            System.out.println("Connected to server: " + socket.getInetAddress());
+
+            // Send message to server
+            PrintWriter writer = new PrintWriter(
+                    socket.getOutputStream(), true);
+
+            writer.println("Hi from client");
+
+            // Receive message from server
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
+
+            String serverResponse = reader.readLine();
+            System.out.println("Server says: " + serverResponse);
+
+            // Close everything
+            writer.close();
+            reader.close();
+            socket.close();
+
+        } catch (IOException e) {
+            System.out.println("Client Error: " + e.getMessage());
+        }
+    }
+}
+
+
