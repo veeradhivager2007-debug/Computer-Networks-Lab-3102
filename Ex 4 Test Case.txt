@@ -1,0 +1,86 @@
+Client :
+
+import java.net.*;
+import java.io.*;
+import java.util.HashMap;
+
+public class DNSServer {
+    public static void main(String args[]) throws Exception {
+        HashMap<String, String> dnsTable = new HashMap<>();
+        dnsTable.put("www.google.com", "142.250.183.132");
+        dnsTable.put("www.yahoo.com", "98.137.11.163");
+        dnsTable.put("www.github.com", "140.82.114.3");
+        DatagramSocket serverSocket = new DatagramSocket(9876);
+        System.out.println("DNS Server is running...");
+        byte[] receiveData = new byte[1024];
+        byte[] sendData;
+        while (true) {
+            DatagramPacket receivePacket =
+                    new DatagramPacket(receiveData, receiveData.length);
+            serverSocket.receive(receivePacket);
+            String domain = new String(receivePacket.getData(), 0,
+                    receivePacket.getLength());
+            System.out.println("Client requested: " + domain);
+            String response;
+            if (domain.trim().equals("")) {
+                response = "Invalid Input";
+            } else if (dnsTable.containsKey(domain)) {
+                response = dnsTable.get(domain);
+            } else {
+                response = "Domain not found";
+            }
+            sendData = response.getBytes();
+            InetAddress IPAddress = receivePacket.getAddress();
+            int port = receivePacket.getPort();
+            DatagramPacket sendPacket =
+                    new DatagramPacket(sendData, sendData.length,
+                            IPAddress, port);
+            serverSocket.send(sendPacket);
+        }
+    }
+}
+
+
+server:
+import java.net.*;
+import java.io.*;
+
+public class DNSClient {
+    public static void main(String args[]) throws Exception {
+
+        BufferedReader inFromUser =
+                new BufferedReader(new InputStreamReader(System.in));
+
+        DatagramSocket clientSocket = new DatagramSocket();
+
+        InetAddress IPAddress = InetAddress.getByName("localhost");
+
+        byte[] sendData;
+        byte[] receiveData = new byte[1024];
+
+        System.out.print("Enter Domain Name: ");
+        String domain = inFromUser.readLine();
+
+        sendData = domain.getBytes();
+
+        DatagramPacket sendPacket =
+                new DatagramPacket(sendData, sendData.length,
+                        IPAddress, 9876);
+
+        clientSocket.send(sendPacket);
+
+        DatagramPacket receivePacket =
+                new DatagramPacket(receiveData, receiveData.length);
+
+        clientSocket.receive(receivePacket);
+
+        String modifiedSentence =
+                new String(receivePacket.getData(), 0,
+                        receivePacket.getLength());
+
+        System.out.println("DNS Server Response: " + modifiedSentence);
+
+        clientSocket.close();
+    }
+}
+
